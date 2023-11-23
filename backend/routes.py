@@ -76,11 +76,37 @@ def get_song_by_id(id):
 def create_song():
     new_song = request.json
     lst = db.songs.find_one({"id": new_song["id"]})
-    print(lst)
     if lst:
         return {"Message": f"song with id {lst['id']} already present"}, 302
     insert_id: InsertOneResult = db.songs.insert_one(new_song)
     return {"inserted id": parse_json(insert_id.inserted_id)}, 201
+
+@app.route('/song/<int:id>', methods = ['PUT'])
+def update_song(id):
+    song_in = request.json
+    print(song_in)
+    print(id)
+    song = db.songs.find_one({"id": id})
+    if song == None:
+        return {"message": "song not found"}, 404
+    updated_data = {"$set": song_in}
+    result = db.songs.update_one({"id": id}, updated_data)
+    if result.modified_count == 0:
+        return {"message": "song found, but nothing updated"}, 200
+    else:
+        return parse_json(db.songs.find_one({"id": id})), 201
+
+@app.route('/song/<int:id>', methods = ['DELETE'])
+def delete_song(id):
+    print(id)
+    result = db.songs.delete_one({"id": id})
+    print(1111, result)
+    if result.deleted_count == 0:
+        return {"message": "song not found"}, 404
+    return '', 204
+
+
+
     
 
 
